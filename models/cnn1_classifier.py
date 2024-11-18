@@ -6,6 +6,7 @@ from tensorflow.keras.layers import (
     Dense,
     Conv1D,
     AvgPool1D,
+    MaxPool1D,
     Flatten,
     Activation,
     BatchNormalization,
@@ -37,8 +38,8 @@ class Conv(Module):
                 strides=1,
                 padding="same"
             ),
-            AvgPool1D(pool_size=2),
-            BatchNormalization(),
+            MaxPool1D(pool_size=2),
+            #BatchNormalization(),
             Activation(activation)
         ])
     
@@ -79,9 +80,9 @@ class Cnn1DRecognizer(Model):
 
         linear = Sequential([
             Flatten(),
-            Linear(units=128, activation="silu"),
-            Linear(units=64, activation="silu"),
-            Linear(units=32, activation="silu"),
+            Linear(units=128, activation="relu"),
+            Linear(units=64, activation="relu"),
+            Linear(units=32, activation="relu"),
             Linear(units=3, activation="softmax")
         ])(conv)
 
