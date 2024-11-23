@@ -39,7 +39,7 @@ class Conv(Module):
                 padding="same"
             ),
             MaxPool1D(pool_size=2),
-            #BatchNormalization(),
+            BatchNormalization(),
             Activation(activation)
         ])
     
