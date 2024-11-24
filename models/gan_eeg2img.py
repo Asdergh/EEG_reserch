@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import tensorflow as tf
 
 from tensorflow.keras.layers import (
     Input,
@@ -40,6 +41,7 @@ class Conv(Module):
 
     def __init__(self, filters, kernel_size=3, strides=1, activation="tanh"):
 
+        super(Conv, self).__init__()
         self.model_ = Sequential([
             Conv2D(
                 filters=filters, 
@@ -51,13 +53,14 @@ class Conv(Module):
             Activation(activation)
         ])
     
-    def call(self, input):
+    def __call__(self, input):
         return self.model_(input)
 
 class UpSample(Module):
 
     def __init__(self, filters, kernel_size=3, activation="tanh"):
 
+        super(UpSample, self).__init__()
         self.model_ = Sequential([
             Conv2D(
                 filters=filters, 
@@ -65,18 +68,19 @@ class UpSample(Module):
                 strides=1,
                 padding="same"
             ),
-            UpSample(size=2),
+            UpSampling2D(size=2),
             BatchNormalization(),
             Activation(activation)
         ])
     
-    def call(self, input):
+    def __call__(self, input):
         return self.model_(input)
 
 class DownSample(Module):
 
     def __init__(self, filters, kernel_size=3, activation="tanh"):
 
+        super(DownSample, self).__init__()
         self.model_ = Sequential([
             Conv2D(
                 filters=filters, 
@@ -89,13 +93,14 @@ class DownSample(Module):
             Activation(activation)
         ])
     
-    def call(self, input):
+    def __call__(self, input):
         return self.model_(input)
 
 class ResBlock(Module):
 
     def __init__(self, filters, kernel_size=3):
 
+        super(ResBlock, self).__init__()
         self.res_conv_ = Sequential([
             Conv2D(
                 filters=filters, 
@@ -120,7 +125,7 @@ class ResBlock(Module):
                 padding="same"
             )
     
-    def call(self, input):
+    def __call__(self, input):
 
         x = self.res_conv_(input)
         conv = self.conv_(input)
@@ -136,6 +141,7 @@ class MelEmbedder(Module):
 
     def __init__(self):
         
+        super(MelEmbedder, self).__init__()
         self.model_ = Sequential([
             Conv1D(
                 filters=128,
@@ -157,7 +163,7 @@ class MelEmbedder(Module):
             Dense(units=1, activation="relu")
         ])
     
-    def call(self, input):
+    def __call__(self, input):
         return self.model_(input)
 
 
@@ -165,11 +171,11 @@ class UpNet(Module):
 
     def __init__(self, out_channels=3):
 
+        super(UpNet, self).__init__()
         self.out_channels = out_channels
         self.model_ = Sequential([
             UpSample(filters=128),
             UpSample(filters=64),
-            UpSample(filters=32),
             Conv2D(
                 filters=out_channels,
                 kernel_size=3,
@@ -179,7 +185,7 @@ class UpNet(Module):
             Activation("tanh")
         ])
     
-    def all(self, input):
+    def __call__(self, input):
         return self.model_(input)
     
 
@@ -202,17 +208,16 @@ class DenseNet(Module):
             Dense(units=1, activation="sigmoid")
         ])
     
-    def call(self, input):
+    def __call__(self, input):
         return self.model_(input)
 
 
 class GanModel(Model):
 
-    def __init__(self, input_sh, emb_dim,  mel_sh, **kwargs):
+    def __init__(self, input_sh, mel_sh, **kwargs):
 
-        super(self, **kwargs).__init__()
+        super().__init__(**kwargs)
         self.input_sh = input_sh
-        self.emd_dim = emb_dim
         self.mel_sh = mel_sh
         self.gen_, self.dis_ = self.build_models_()
 
@@ -220,7 +225,7 @@ class GanModel(Model):
     def build_models_(self):
 
         dis_input = Input(shape=self.input_sh)
-        enc_input = Input(shpe=self.mel_sh)
+        enc_input = Input(shape=self.mel_sh)
 
         encoder = MelEmbedder()(enc_input)
         rec_sh = Dense(units=(self.input_sh[-1] * (self.input_sh[0] // 4) * (self.input_sh[1] // 4)))(encoder)
@@ -239,17 +244,17 @@ class GanModel(Model):
         )
         
 
-    def compile(self, optimizers, losses):
+    def compile(self, optimizer, loss):
 
         super().compile()
-        self.gen_optimizer, self.dis_optimizer = optimizers
-        self.gen_lfn, self.dis_lfn = losses 
+        self.gen_optimizer, self.dis_optimizer = optimizer
+        self.gen_lfn, self.dis_lfn = loss
         
         self.gen_loss_tracker = Mean(name="gan_loss_tracker")
         self.dis_loss_tracker = Mean(name="dis_loss_tracker")
-        self.total_loss_tracker = Mean(name="dsi_loss_tracker") 
+        self.total_loss_tracker = Mean(name="total_loss_tracker") 
     
-    def trainig_step(self, inputs):
+    def train_step(self, inputs):
 
         
         mels_batch, images_batch = inputs
@@ -260,15 +265,15 @@ class GanModel(Model):
             gen_out = self.gen_(mels_batch)
             dis_valid_out, dis_fake_out = self.dis_(images_batch), self.dis_(gen_out)
             
-            dis_loss = self.dis_lfn(dis_valid_out, dis_valid_scores) + self.dis_fn(dis_fake_out, dis_fake_scores)
+            dis_loss = self.dis_lfn(dis_valid_out, dis_valid_scores) + self.dis_lfn(dis_fake_out, dis_fake_scores)
             gen_loss = self.gen_lfn(images_batch, gen_out)
-            total_loss = dis_loss + gen_loss
+            total_loss = tf.cast(dis_loss, tf.float64) + tf.cast(gen_loss, tf.float64)
         
         gen_grads = gen_tape.gradient(total_loss, self.gen_.trainable_variables)
-        dis_grads = dis_tape.gradient(total_loss, self.dis_.trainables_variables)
+        dis_grads = dis_tape.gradient(total_loss, self.dis_.trainable_variables)
         
-        self.gen_optimizer.apply_gradients(zip(total_loss, gen_grads))
-        self.dis_optimizer.apply_gradients(zip(total_loss, dis_grads))
+        self.gen_optimizer.apply_gradients(zip(gen_grads, self.gen_.trainable_variables))
+        self.dis_optimizer.apply_gradients(zip(dis_grads, self.dis_.trainable_variables))
 
         self.gen_loss_tracker.update_state(gen_loss)
         self.dis_loss_tracker.update_state(dis_loss)
@@ -279,6 +284,45 @@ class GanModel(Model):
             self.dis_loss_tracker.name: self.dis_loss_tracker.result(),
             self.total_loss_tracker.name: self.total_loss_tracker.result()
         }
-            
+        
+    function
+    def call(self, inputs):
+        return self.gen_(inputs)
+
+    
+if __name__ == "__main__":
+
+
+    gan_net = GanModel(input_sh=(128, 128, 3), mel_sh=(100, 45))
+    gan_net.gen_.summary()
+    gan_net.dis_.summary()
+
+    random_mels = np.random.normal(0, 12.0, (200, 100, 45))
+    random_images = np.random.normal(0, 12.0, (200, 128, 128, 3))
+    
+    # gen_out = gan_net.gen_.predict(random_mels)
+    # dis_out = gan_net.dis_.predict(random_images)
+    
+    # gan_net.compile(
+    #     optimizer=[
+    #         Adam(learning_rate=0.01),
+    #         Adam(learning_rate=0.01)
+    #     ],
+    #     loss=[
+    #         MeanSquaredError(),
+    #         BinaryCrossentropy()
+    #     ]
+    # )
+    # gan_net.fit(
+    #     random_mels, random_images,
+    #     epochs=10, 
+    #     batch_size=32
+    # )
+
+    # gan_net.save_weights("C:\\Users\\1\\Desktop\\EegProject\\models\\gan_weights.weights.h5")
+    gan_net.load_weights("C:\\Users\\1\\Desktop\\EegProject\\models\\gan_weights.weights.h5")
+    gen_out = gan_net.gen_.predict(random_mels)
+    dis_out = gan_net.dis_.predict(random_images)
+    print(gen_out.shape, dis_out.shape)
 
     
