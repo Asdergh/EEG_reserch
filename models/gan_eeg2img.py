@@ -2,7 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import tensorflow as tf
+import os
 
+
+plt.style.use("dark_background")
 from tensorflow.keras.layers import (
     Input,
     Conv2D,
@@ -35,6 +38,7 @@ from tensorflow import (
 )
 from tensorflow.keras.metrics import Mean
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import Callback
 
 
 class Conv(Module):
@@ -139,7 +143,7 @@ class ResBlock(Module):
 
 class MelEmbedder(Module):
 
-    def __init__(self):
+    def __init__(self, embedding_dim: int) -> None:
         
         super(MelEmbedder, self).__init__()
         self.model_ = Sequential([
@@ -159,8 +163,7 @@ class MelEmbedder(Module):
             BatchNormalization(),
             Flatten(),
             Dense(units=128, activation="relu"),
-            Dense(units=64, activation="relu"),
-            Dense(units=1, activation="relu")
+            Dense(units=embedding_dim, activation="relu")
         ])
     
     def __call__(self, input):
@@ -174,8 +177,8 @@ class UpNet(Module):
         super(UpNet, self).__init__()
         self.out_channels = out_channels
         self.model_ = Sequential([
-            UpSample(filters=128),
-            UpSample(filters=64),
+            UpSample(filters=128, activation="linear"),
+            UpSample(filters=64, activation="linear"),
             Conv2D(
                 filters=out_channels,
                 kernel_size=3,
@@ -212,22 +215,84 @@ class DenseNet(Module):
         return self.model_(input)
 
 
+
+class GanModelCallback(Callback):
+
+    def __init__(
+            self, 
+            gen_model, 
+            data, 
+            run_folder,
+            img_sh=(128, 128, 3),
+            samples_n=25,
+    ):
+
+        
+        self.gen_model = gen_model
+        self.data = data
+        self.img_sh = img_sh
+        self.samples_n = samples_n
+        self.run_folder = run_folder
+    
+    def on_epoch_end(self, epoch, logs=None):
+
+        fig, axis = plt.subplots()
+        show_tensor = np.zeros((
+            int(np.sqrt(self.samples_n)) * self.img_sh[0],
+            int(np.sqrt(self.samples_n)) * self.img_sh[1],
+            self.img_sh[-1]
+        ))
+
+        for i in range(int(np.sqrt(self.samples_n))):
+            for j in range(int(np.sqrt(self.samples_n))):
+
+                
+                random_idx = np.random.randint(0, self.data.shape[0])
+                mel_sample = self.data[random_idx]
+                mel_sample = np.expand_dims(mel_sample, axis=0)
+                print(mel_sample.shape, self.data.shape)
+                generated_img = self.gen_model.predict(mel_sample, verbose=0)
+                show_tensor[
+                    i * self.img_sh[0]: (i + 1) * self.img_sh[0],
+                    j * self.img_sh[1]: (j + 1) * self.img_sh[1],
+                    :
+                ] = generated_img
+                
+            
+        gen_path = os.path.join(self.run_folder, "gen_samples")
+        if not os.path.exists(gen_path):
+            os.mkdir(gen_path)
+        
+        epoch_path = os.path.join(gen_path, f"generation_at_{epoch}.png")
+        axis.imshow(show_tensor)
+        fig.savefig(epoch_path)
+    
+        
+        
+        
 class GanModel(Model):
 
-    def __init__(self, input_sh, mel_sh, **kwargs):
+    def __init__(
+            self, 
+            input_sh: tuple, 
+            mel_sh: tuple, 
+            embedding_dim: int, 
+            **kwargs
+    ) -> None:
 
         super().__init__(**kwargs)
         self.input_sh = input_sh
         self.mel_sh = mel_sh
-        self.gen_, self.dis_ = self.build_models_()
+        self.emb_dim = embedding_dim
+        self.gen_, self.dis_, self.enc_ = self.build_models_()
 
-    
+
     def build_models_(self):
 
         dis_input = Input(shape=self.input_sh)
         enc_input = Input(shape=self.mel_sh)
 
-        encoder = MelEmbedder()(enc_input)
+        encoder = MelEmbedder(embedding_dim=self.emb_dim)(enc_input)
         rec_sh = Dense(units=(self.input_sh[-1] * (self.input_sh[0] // 4) * (self.input_sh[1] // 4)))(encoder)
         rec_sh = Reshape(target_shape=(
             self.input_sh[0] // 4,
@@ -240,7 +305,8 @@ class GanModel(Model):
 
         return (
             Model(inputs=enc_input, outputs=upsampling),
-            Model(inputs=dis_input, outputs=dense_net)
+            Model(inputs=dis_input, outputs=dense_net),
+            Model(inputs=enc_input, outputs=encoder)
         )
         
 
@@ -266,11 +332,11 @@ class GanModel(Model):
             dis_valid_out, dis_fake_out = self.dis_(images_batch), self.dis_(gen_out)
             
             dis_loss = self.dis_lfn(dis_valid_out, dis_valid_scores) + self.dis_lfn(dis_fake_out, dis_fake_scores)
-            gen_loss = self.gen_lfn(images_batch, gen_out)
+            gen_loss = self.gen_lfn(tf.ones_like(dis_fake_out), dis_fake_out)
             total_loss = tf.cast(dis_loss, tf.float64) + tf.cast(gen_loss, tf.float64)
         
-        gen_grads = gen_tape.gradient(total_loss, self.gen_.trainable_variables)
-        dis_grads = dis_tape.gradient(total_loss, self.dis_.trainable_variables)
+        gen_grads = gen_tape.gradient(gen_loss, self.gen_.trainable_variables)
+        dis_grads = dis_tape.gradient(dis_loss, self.dis_.trainable_variables)
         
         self.gen_optimizer.apply_gradients(zip(gen_grads, self.gen_.trainable_variables))
         self.dis_optimizer.apply_gradients(zip(dis_grads, self.dis_.trainable_variables))
@@ -290,39 +356,42 @@ class GanModel(Model):
         return self.gen_(inputs)
 
     
-if __name__ == "__main__":
 
 
-    gan_net = GanModel(input_sh=(128, 128, 3), mel_sh=(100, 45))
-    gan_net.gen_.summary()
-    gan_net.dis_.summary()
 
-    random_mels = np.random.normal(0, 12.0, (200, 100, 45))
-    random_images = np.random.normal(0, 12.0, (200, 128, 128, 3))
-    
-    # gen_out = gan_net.gen_.predict(random_mels)
-    # dis_out = gan_net.dis_.predict(random_images)
-    
-    # gan_net.compile(
-    #     optimizer=[
-    #         Adam(learning_rate=0.01),
-    #         Adam(learning_rate=0.01)
-    #     ],
-    #     loss=[
-    #         MeanSquaredError(),
-    #         BinaryCrossentropy()
-    #     ]
-    # )
-    # gan_net.fit(
-    #     random_mels, random_images,
-    #     epochs=10, 
-    #     batch_size=32
-    # )
 
-    # gan_net.save_weights("C:\\Users\\1\\Desktop\\EegProject\\models\\gan_weights.weights.h5")
-    gan_net.load_weights("C:\\Users\\1\\Desktop\\EegProject\\models\\gan_weights.weights.h5")
-    gen_out = gan_net.gen_.predict(random_mels)
-    dis_out = gan_net.dis_.predict(random_images)
-    print(gen_out.shape, dis_out.shape)
+# if __name__ == "__main__":
 
-    
+#     IMAGES_SH = (128, 128, 3)
+#     MELS_SIZE = (14, 32)
+#     train_mels = np.random.normal(0, 1.0, (100, 14, 32))
+#     train_images = np.random.normal(0, 1.0, (100, 128, 128, 3))
+
+#     model = GanModel(
+#     input_sh=IMAGES_SH,
+#     mel_sh=MELS_SIZE
+#     )
+
+#     callback = GanModelCallback(
+#     run_folder="C:\\Users\\1\\Desktop\\EegProject\\models_storage\\gan_logs",
+#     gen_model=model.gen_,
+#     data=train_mels
+#     )
+
+#     model.compile(
+#         optimizer=[
+#             Adam(learning_rate=0.001),
+#             Adam(learning_rate=0.001)
+#         ],
+#         loss=[
+#             BinaryCrossentropy(),
+#             BinaryCrossentropy()
+#             ]
+#     )
+
+#     model_hs = model.fit(
+#         train_mels, train_images,
+#         epochs=100,
+#         batch_size=32,
+#         callbacks=[callback]
+#     )
