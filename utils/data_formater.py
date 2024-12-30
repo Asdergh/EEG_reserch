@@ -46,7 +46,7 @@ train_images = th.Tensor(np.asarray(train_images))
 test_images = th.Tensor(np.asarray(test_images))
 th.save((train_images, train_mels[:100]), "train_data.pt")
 th.save((test_images, test_mels[:100]), "test_data.pt")
-print("DATA WAS AVED IN .pt FILES!!!")
+print("DATA WAS MOOVED IN .pt FILES!!!")
 
 
 

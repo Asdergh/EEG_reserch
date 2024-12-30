@@ -1,2 +1,8 @@
-.csv
-.img
+test.*
+*.img
+*.png
+*.jpg
+*.mp3
+*.pt
+__pycache__.*
+storage.*
