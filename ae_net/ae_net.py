@@ -93,21 +93,23 @@ class AeEegNet(Module):
     ) -> None:
         
         super().__init__()
-        self._encoder = TransformerEncoder(
-            mels_size=mels_size,
-            out_features=encoder_out_features,
-            att_features=att_features,
-            hiden_features=hiden_features
-        )
-        self._decoder = ImgDecoder(
-            in_features=encoder_out_features,
-            out_channels=out_channels,
-            patch_size=patch_size,
-            out_size=out_size
-        )
-    
+        self._net = ModuleDict({
+            "encoder": TransformerEncoder(
+                mels_size=mels_size,
+                out_features=encoder_out_features,
+                att_features=att_features,
+                hiden_features=hiden_features
+            ),
+            "decoder": ImgDecoder(
+                in_features=encoder_out_features,
+                out_channels=out_channels,
+                patch_size=patch_size,
+                out_size=out_size
+            )
+        })
+            
     def __call__(self, inputs: th.Tensor) -> th.Tensor:
 
-        encoding = self._encoder(inputs)
-        return self._decoder(encoding)
+        encoding = self._net["encoder"](inputs)
+        return self._net["decoder"](encoding)
 
