@@ -12,9 +12,69 @@ from torch.nn import (
     BatchNorm2d,
     BatchNorm1d,
     Tanh,
-    Upsample
+    Upsample,
+    ConvTranspose2d,
+    Sigmoid,
+    Softmax,
+    ReLU
 )
 
+
+__activations__ = {
+    "tanh": Tanh,
+    "sigmoid": Sigmoid,
+    "softmax": Softmax,
+    "relu": ReLU
+}
+__all__ = [
+    "Conv2dSS",
+    "Conv1dSS",
+    "UpsampleLayer",
+    "ResLayer",
+    "MulHeadAttention",
+    "Module",
+    "ModuleDict",
+    "BatchNorm2d",
+    "BatchNorm1d",
+    "Tanh",
+    "Upsample",
+    "Conv2d",
+    "Conv1d",
+    "Linear",
+    "Softmax",
+    "Sequential",
+    "ConvTranspose2d"
+]
+
+
+class Conv2dTransposeSS(Module):
+
+    def __init__(
+        self, 
+        in_channels: int,
+        out_channels: int,
+        padding: int = 0,
+        stride: int = 2,
+        kernel_size: int = 4,
+        activation: str = "relu"
+    ):
+        
+        super().__init__()
+        self._net = Sequential(
+            Conv2dTransposeSS(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                padding=padding,
+                stride=stride,
+                kernel_size=kernel_size
+            ),
+            BatchNorm2d(num_features=out_channels),
+            __activations__[activation]()
+        )
+    
+    def __call__(self, inputs: th.Tensor) -> th.Tensor:
+        return self._net(inputs)
+    
 class Conv2dSS(Module):
 
     def __init__(
@@ -23,7 +83,8 @@ class Conv2dSS(Module):
         out_channels: int,
         padding: int = 0,
         stride: int = 2,
-        kernel_size: int = 3
+        kernel_size: int = 3,
+        activation: str = "tanh"
     ) -> None:
         
         super().__init__()
@@ -36,7 +97,7 @@ class Conv2dSS(Module):
                 kernel_size=kernel_size
             ),
             BatchNorm2d(num_features=out_channels),
-            Tanh()
+            __activations__[activation]()
         )
     
     def __call__(self, inputs: th.Tensor) -> th.Tensor:
@@ -51,7 +112,8 @@ class Conv1dSS(Module):
         out_channels: int,
         padding: int = 0,
         stride: int = 2,
-        kernel_size: int = 3
+        kernel_size: int = 3,
+        activation: str = "tanh"
     ) -> None:
 
         super().__init__()
@@ -64,7 +126,7 @@ class Conv1dSS(Module):
                 kernel_sie=kernel_size
             ),
             BatchNorm1d(num_features=out_channels),
-            Tanh()
+            __activations__[activation]()
         )
     
     def __call__(self, inputs: th.Tensor) -> th.Tensor:
@@ -72,13 +134,17 @@ class Conv1dSS(Module):
 
 class UpsampleLayer(Module):
 
-    def __init__(self, in_channels: int) -> None:
+    def __init__(
+        self, 
+        in_channels: int, 
+        activation: str = "tanh"
+    ) -> None:
         
         super().__init__()
         self._net = Sequential(
             Upsample(scale_factor=2),
             BatchNorm2d(num_features=in_channels),
-            Tanh()
+            __activations__[activation]()
         )
     
     def __call__(self, inputs: th.Tensor) -> th.Tensor:

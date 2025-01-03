@@ -6,3 +6,4 @@ test.*
 *.pt
 __pycache__.*
 storage.*
+models_weights.*

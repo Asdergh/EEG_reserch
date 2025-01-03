@@ -1,5 +1,4 @@
 import torch as th
-
 from math import log2
 from torch.nn import (
     Linear,
@@ -24,7 +23,7 @@ class TransformerEncoder(Module):
             Conv2dSS(in_channels=1, out_channels=32),
             Conv2dSS(in_channels=32, out_channels=64),
             Conv2dSS(in_channels=64, out_channels=32),
-        )
+        )   
         self._flt = Flatten()
         self._att = MulHeadAttention(in_features=(mels_size[0] * mels_size[1]), out_features=att_features)
         self._res0 = ResLayer(in_features=(mels_size[0] * mels_size[1]), out_features=att_features)

@@ -1,0 +1,10 @@
+AeEegNet:
+  att_features: 128
+  encoder_out_features: 128
+  hiden_features: 64
+  mels_size: !!python/tuple
+  - 40
+  - 200
+  out_channels: 3
+  out_size: 512
+  patch_size: 32

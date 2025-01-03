@@ -4,10 +4,9 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ae_net import AeEegNet
-from eeg2img_dataset import Eeg2ImgSet
-from torch.nn import Module, MSELoss
-from torch.optim import Optimizer, Adam
+
+from torch.nn import Module
+from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 from torchvision.transforms.functional import to_pil_image
 
@@ -111,33 +110,7 @@ class AeEegNetTrainer:
         }
 
 
-if __name__ == "__main__":
 
-    train_set = Eeg2ImgSet(
-        data_dir="C:\\Users\\1\\Desktop\\PythonProjects\\EegProject\\data",
-        split="train",
-        img_tar_s=(128, 128),
-        mels_tar_s=(40, 200)
-    )
-    loader = DataLoader(dataset=train_set, )
-    model = AeEegNet(
-        mels_size=(40, 200),
-        encoder_out_features=128,
-        out_channels=3,
-        out_size = 128,
-        patch_size = 16
-    )
-
-    loss = MSELoss()
-    optim = Adam(params=model.parameters(), lr=0.01)
-    trainer = AeEegNetTrainer(
-        model=model,
-        loss=loss,
-        optim=optim,
-        loader=loader,
-    )
-    
-    trainer.train(epochs=2)
     
 
     
