@@ -1,6 +1,6 @@
 import torch as th
 import yaml
-from ae_net import AeEegNet
+from models.mels2img_net import AeEegNet
 from layers import *
 
 

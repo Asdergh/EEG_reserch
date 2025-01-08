@@ -4,6 +4,7 @@ test.*
 *.jpg
 *.mp3
 *.pt
+*.gif
 __pycache__.*
 storage.*
 models_weights.*

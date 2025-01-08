@@ -16,7 +16,9 @@ from torch.nn import (
     ConvTranspose2d,
     Sigmoid,
     Softmax,
-    ReLU
+    ReLU,
+    Flatten,
+    LayerNorm
 )
 
 
@@ -24,9 +26,11 @@ __activations__ = {
     "tanh": Tanh,
     "sigmoid": Sigmoid,
     "softmax": Softmax,
-    "relu": ReLU
+    "relu": ReLU,
+
 }
 __all__ = [
+    "Flatten",
     "Conv2dSS",
     "Conv1dSS",
     "UpsampleLayer",
@@ -43,9 +47,38 @@ __all__ = [
     "Linear",
     "Softmax",
     "Sequential",
-    "ConvTranspose2d"
+    "Conv2dTransposeSS",
+    "MLPLayer"
 ]
 
+
+
+class MLPLayer(Module):
+    
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        hiden_features: int = 32,
+        hiden_l: int = 3,
+        activation: str = "relu",
+        out_activation: str = "relu"
+    ) -> None:
+        
+        super().__init__()
+        self._net = Sequential(
+            Linear(in_features=in_features, out_features=hiden_features),
+            *[Sequential(
+                Linear(in_features=hiden_features, out_features=hiden_features),
+                LayerNorm(normalized_shape=hiden_features),
+                __activations__[activation]()
+            ) for _ in range(hiden_l)],
+            Linear(in_features=hiden_features, out_features=out_features),
+            __activations__[out_activation]()
+        )
+    
+    def __call__(self, inputs: th.Tensor) -> th.Tensor:
+        return self._net(inputs)
 
 class Conv2dTransposeSS(Module):
 
@@ -53,15 +86,15 @@ class Conv2dTransposeSS(Module):
         self, 
         in_channels: int,
         out_channels: int,
-        padding: int = 0,
+        padding: int = 1,
         stride: int = 2,
         kernel_size: int = 4,
         activation: str = "relu"
-    ):
+    ) -> None:
         
         super().__init__()
         self._net = Sequential(
-            Conv2dTransposeSS(
+            ConvTranspose2d(
                 in_channels=in_channels,
                 out_channels=out_channels,
                 padding=padding,
@@ -81,7 +114,7 @@ class Conv2dSS(Module):
         self,
         in_channels: int,
         out_channels: int,
-        padding: int = 0,
+        padding: int = 1,
         stride: int = 2,
         kernel_size: int = 3,
         activation: str = "tanh"
@@ -110,7 +143,7 @@ class Conv1dSS(Module):
         self,
         in_channels: int, 
         out_channels: int,
-        padding: int = 0,
+        padding: int = 1,
         stride: int = 2,
         kernel_size: int = 3,
         activation: str = "tanh"
