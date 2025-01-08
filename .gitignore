@@ -5,6 +5,7 @@ test.*
 *.mp3
 *.pt
 *.gif
+gan_models.py
 __pycache__.*
 storage.*
 models_weights.*

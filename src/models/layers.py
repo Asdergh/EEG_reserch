@@ -18,7 +18,8 @@ from torch.nn import (
     Softmax,
     ReLU,
     Flatten,
-    LayerNorm
+    LayerNorm,
+    Dropout
 )
 
 
@@ -48,7 +49,9 @@ __all__ = [
     "Softmax",
     "Sequential",
     "Conv2dTransposeSS",
-    "MLPLayer"
+    "MLPLayer",
+    "LayerNorm",
+    "Dropout"
 ]
 
 
