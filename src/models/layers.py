@@ -19,7 +19,10 @@ from torch.nn import (
     ReLU,
     Flatten,
     LayerNorm,
-    Dropout
+    Dropout,
+    BatchNorm3d,
+    Conv3d,
+    ConvTranspose3d
 )
 
 
@@ -51,7 +54,10 @@ __all__ = [
     "Conv2dTransposeSS",
     "MLPLayer",
     "LayerNorm",
-    "Dropout"
+    "Dropout",
+    "ReLU",
+    "Conv3dSS",
+    "Conv3dTransposeSS"
 ]
 
 
@@ -82,6 +88,65 @@ class MLPLayer(Module):
     
     def __call__(self, inputs: th.Tensor) -> th.Tensor:
         return self._net(inputs)
+
+
+class Conv3dSS(Module):
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        padding: int = 1,
+        stride: int = 2,
+        kernel_size: int = 3,
+        activation: str = "relu"
+    ) -> None:
+        
+        super().__init__()
+        self._net = Sequential(
+            Conv3d(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                stride=stride,
+                padding=padding,
+                kernel_size=kernel_size
+            ),
+            BatchNorm3d(num_features=out_channels),
+            __activations__[activation]()
+        )
+    
+    def __call__(self, inputs: th.Tensor) -> th.Tensor:
+        return self._net(inputs)
+
+class Conv3dTransposeSS(Module):
+
+    def __init__(
+        self, 
+        in_channels: int,
+        out_channels: int,
+        padding: int = 1,
+        stride: int = 2,
+        kernel_size: int = 4,
+        activation: str = "relu"
+    ) -> None:
+        
+        super().__init__()
+        self._net = Sequential(
+            ConvTranspose3d(
+                in_channels=in_channels,
+                out_channels=out_channels,
+                padding=padding,
+                stride=stride,
+                kernel_size=kernel_size
+            ),
+            BatchNorm3d(num_features=out_channels),
+            __activations__[activation]()
+        )
+    
+    def __call__(self, inputs: th.Tensor) -> th.Tensor:
+        return self._net(inputs)
+
+    
 
 class Conv2dTransposeSS(Module):
 

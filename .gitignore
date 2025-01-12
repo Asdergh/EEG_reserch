@@ -1,4 +1,5 @@
 test.*
+data
 *.img
 *.png
 *.jpg
@@ -6,6 +7,7 @@ test.*
 *.pt
 *.gif
 gan_models.py
+cnn_ed_net.py
 __pycache__.*
 storage.*
 models_weights.*

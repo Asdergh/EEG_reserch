@@ -1,7 +1,7 @@
 import torch as th
 import os
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from torchvision.transforms import Resize
 
 

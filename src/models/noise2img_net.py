@@ -108,8 +108,9 @@ if __name__ == "__main__":
         in_channels=3
     )
     A = th.normal(0.12, 1.12, (32, 32))
-    print(generator(A).size())
-    print(discriminator(generator(A)).size())
+    # print(generator(A).size())
+    # print(discriminator(generator(A)).size())
+    print(list(generator.parameters()))
     
 
 
