@@ -6,7 +6,7 @@ __3D FMRI reconstructions with GAN-like deep neural networks__
 In this project i present networks for neuro data analization. The main perpose of this project was to get accurate EEg to 3d BOLD FMRI-like scence approch based on 3d CNN GAN-like models. Here you can see results of modeling on the rich side and related data from true data distribution.
 ![brain_samples](https://github.com/user-attachments/assets/3534d805-4533-48b8-9de7-7cb8387772db)
 Also in this project you will find attempts to reconstruct images that was shown to the test subjects during the EEG-FMRI scanning. On image above you find images from cifar10 dataset that was recoverd from test subjects visual cortex recordings during the tests
-![image](https://github.com/user-attachments/assets/329639f5-0e1a-4f32-8b7e-f9264cf03468 | width=250)
+![image](https://github.com/user-attachments/assets/329639f5-0e1a-4f32-8b7e-f9264cf03468)
 
 
 Data were taken from datasets towards the linkcs: 
