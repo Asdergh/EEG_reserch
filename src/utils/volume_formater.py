@@ -73,6 +73,4 @@ class VolData:
             th.save(paths[path], os.path.join(self.target_folder, path))
 
 
-        
-        
-        
+         
