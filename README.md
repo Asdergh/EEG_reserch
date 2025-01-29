@@ -28,7 +28,7 @@ There is still some sutf that me done in this projection. So you can observ TODO
 - [ ] other utils.
 
 ## Examples 
-``` 
+``` yaml
 AeEegNet:
   att_features: 128
   encoder_out_features: 128
