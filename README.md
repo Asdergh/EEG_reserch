@@ -27,7 +27,7 @@ There is still some sutf that me done in this projection. So you can observ TODO
 - [ ] automated model trainers.
 - [ ] other utils.
 
-## Examples 
+## Examples of farther model automated parametrization
 ``` yaml
 AeEegNet:
   att_features: 128
