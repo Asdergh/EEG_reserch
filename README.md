@@ -41,4 +41,48 @@ AeEegNet:
   patch_size: 32
 ```
 
+## Project structure
+```
+.
+├── README.md
+├── Source.gv
+├── ae_eeg.yaml
+├── src
+│   ├── models
+│   │   ├── __pycache__
+│   │   │   ├── ae_net.cpython-311.pyc
+│   │   │   ├── eeg2volume.cpython-311.pyc
+│   │   │   ├── img2img_net.cpython-311.pyc
+│   │   │   ├── layers.cpython-311.pyc
+│   │   │   ├── mels2img_net.cpython-311.pyc
+│   │   │   └── vol_cnn.cpython-311.pyc
+│   │   ├── cnn_ed_net.py
+│   │   ├── eeg2volume.py
+│   │   ├── layers.py
+│   │   ├── mels2img_net.py
+│   │   ├── model_builder.py
+│   │   ├── noise2img_net.py
+│   │   ├── reserch.ipynb
+│   │   ├── test.gv
+│   │   ├── test.py
+│   │   ├── vol_cnn.py
+│   │   └── volume_reserch.ipynb
+│   ├── models_weights
+│   │   └── ae_eeg_net_params.pt
+│   ├── torchsets
+│   │   ├── eeg2img_dataset.py
+│   │   ├── eeg2volume_dataset.py
+│   │   └── volume_dataset.py
+│   ├── trainers
+│   │   ├── ae_models_trainer.py
+│   │   ├── eeg2volume_trainer.py
+│   │   ├── gan_models_trainer.py
+│   │   └── volume_ae_trainer.py
+│   └── utils
+│       ├── data_formater.py
+│       ├── eeg2volume_formate.py
+│       └── volume_formater.py
+└── test.gv
+```
+
 
