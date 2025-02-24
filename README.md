@@ -27,20 +27,6 @@ There is still some sutf that me done in this projection. So you can observ TODO
 - [ ] automated model trainers.
 - [ ] other utils.
 
-## Examples of farther model automated parametrization
-``` yaml
-AeEegNet:
-  att_features: 128
-  encoder_out_features: 128
-  hiden_features: 64
-  mels_size: !!python/tuple
-  - 40
-  - 200
-  out_channels: 3
-  out_size: 512
-  patch_size: 32
-```
-
 ## Project structure
 ```
 .
