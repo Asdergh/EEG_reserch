@@ -24,7 +24,7 @@ https://openneuro.org/datasets/ds004196/versions/1.0.1/file-display/sub-01:ses-E
 - [x] write EEg to 3d projection model.
 - [x] images reconstractions from visual cortex of brain.
 - [ ] automated model trainers.
-- [ ] other utils.
+- [ ] right forward documentation.
 
 ## Project structure
 ```
