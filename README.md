@@ -21,7 +21,6 @@ https://openneuro.org/datasets/ds004196/versions/1.0.1/file-display/sub-01:ses-E
 ```
 
 ## TODO
-There is still some sutf that me done in this projection. So you can observ TODO list above
 - [x] write EEg to 3d projection model.
 - [x] images reconstractions from visual cortex of brain.
 - [ ] automated model trainers.
