@@ -11,11 +11,11 @@ Also in this project you will find attempts to reconstruct images that was shown
 
 
 Data were taken from datasets towards the linkcs: 
-BOLD-5000 dataset wich is consist from 3d BOILD FMRI data of visual cortex activities correlated with images wich was shown to the experimental test subjects
+- BOLD-5000 dataset wich is consist from 3d BOILD FMRI data of visual cortex activities correlated with images wich was shown to the experimental test subjects
 ```
 https://openneuro.org/datasets/ds001499/versions/1.3.0
 ```
-EEG-FMRI dataset with the set of 3d FMRI data correlated with EEG samples for EEG2FMRI projections
+- EEG-FMRI dataset with the set of 3d FMRI data correlated with EEG samples for EEG2FMRI projections
 ```
 https://openneuro.org/datasets/ds004196/versions/1.0.1/file-display/sub-01:ses-EEG:eeg:sub-01_ses-EEG_task-inner_eeg.bdf
 ```
